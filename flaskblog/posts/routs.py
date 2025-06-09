@@ -4,13 +4,11 @@ from flaskblog.models import post, Like, Comment, Dislike
 from flaskblog.posts.forms import PostForm
 from flaskblog import db
 from markupsafe import Markup
-from flaskblog.users.utils import active_required
 
 posts = Blueprint('posts', __name__)
 
 @posts.route('/post/new', methods=['GET', 'POST'])
 @login_required
-@active_required
 def new_post():
     form = PostForm()
     if form.validate_on_submit():
@@ -28,7 +26,6 @@ def Post(post_id):
 
 @posts.route('/post/<int:post_id>/update', methods= ['GET', 'POST'])
 @login_required
-@active_required
 def update_post(post_id):
     Post = post.query.get_or_404(post_id)
     if Post.author != current_user and not current_user.is_admin:
@@ -47,7 +44,6 @@ def update_post(post_id):
 
 @posts.route('/post/<int:post_id>/delete', methods= ['POST'])
 @login_required
-@active_required
 def delete_post(post_id):
     Post = post.query.get_or_404(post_id)
     if Post.author != current_user and not current_user.is_admin:
@@ -66,7 +62,6 @@ def delete_post(post_id):
 
 @posts.route('/undo_delete')
 @login_required
-@active_required
 def undo_delete():
     post_data=session.pop('last_deleted_post', None)
 

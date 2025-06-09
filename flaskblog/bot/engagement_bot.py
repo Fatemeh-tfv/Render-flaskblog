@@ -28,14 +28,16 @@ def get_engagement_summary():
     # Badge assignment
     def assign_badges():
         # Precompute champion
+        first_day_of_month = now.replace(day=1)
         champion = (
             db.session.query(user.id, func.count(post.id).label('c'))
             .join(post)
-            .filter(post.date_posted >= one_week_ago)
+            .filter(post.date_posted >= first_day_of_month)
             .group_by(user.id)
             .order_by(func.count(post.id).desc())
             .first()
         )
+
         champ_id = champion[0] if champion else None
 
         badged_users = {}
