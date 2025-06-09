@@ -35,6 +35,9 @@ def login():
     if form.validate_on_submit():
         User = user.query.filter_by(Email= form.Email.data).first()
         if User and bcrypt.check_password_hash(User.Password, form.Password.data):
+            if not User.is_active:
+                User.is_active = True
+                db.session.commit()
             login_user(User, remember=form.Remember.data)
 
             if User.is_admin:

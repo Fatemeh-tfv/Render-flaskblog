@@ -1,10 +1,11 @@
 import os
 import secrets
 from PIL import Image
-from flask import url_for, current_app
+from flask import url_for, current_app, flash, redirect
 from flask_mail import Message
 from flaskblog import mail
 from flask_login import current_user
+from functools import wraps
 
 def Save_picture(form_Picture):
     random_hex = secrets.token_hex(8)
@@ -33,3 +34,19 @@ if you did not make thid request then simply ignore this email and no changes wi
         mail.send(msg)
     except:
         print(msg)
+
+def active_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not current_user.is_active:
+            flash("Your account is deactivated.", "warning")
+            return redirect(url_for("main.home"))
+        return f(*args, **kwargs)
+    return decorated_function
+
+status_emojis = {
+    "inactive": {"emoji": "😴", "description": "Inactive user - hasn't loged in recently"},
+    "active": {"emoji": "💡", "description": "Active user - posting regularly"},
+    "top_contributor": {"emoji": "🔥", "description": "Top contributor of the week"},
+    "newbie": {"emoji": "🌱", "description": "New member - welcome!"},
+}

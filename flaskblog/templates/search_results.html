@@ -1,0 +1,29 @@
+{% extends "layout.html" %}
+{% block content %}
+  <h2>Search results for "{{ query }}"</h2>
+
+  <h3>Users</h3>
+  {% if users %}
+    <ul>
+      {% for u in users %}
+        <li><a href="{{ url_for('users.user_posts', UserName=u.UserName) }}">{{ u.UserName }}</a></li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>No users found.</p>
+  {% endif %}
+
+  <h3>Posts</h3>
+  {% if posts %}
+    <ul>
+      {% for p in posts %}
+        <li>
+          <a href="{{ url_for('posts.Post', post_id=p.id) }}">{{ p.title }}</a> 
+          by <a href="{{ url_for('users.user_posts', UserName=p.author.UserName) }}">{{ p.author.UserName }}</a>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>No posts found.</p>
+  {% endif %}
+{% endblock %}

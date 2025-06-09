@@ -1,13 +1,16 @@
 {% extends "layout.html" %}
     {% block content %}
         {% for post in posts.items %}
-            <article class="media content-section">
+            <article class="media content-section {% if post.author in inactive_users %}bg-light text-muted{% endif %}">
                 
                 <div class="media-body">
                     <div class="article-metadata">
                         <img class="rounded-circle article-img" src="{{ url_for('static', filename='P_pics/' + post.author.image_file) }}"/>
                         <a class="mr-2" href="{{url_for('users.user_posts', UserName= post.author.UserName)}}">{{post.author.UserName}}</a>
                         <small class="text-muted">{{ post.date_posted.strftime('%Y-%m-%d') }}</small>
+                        {% if post.author in inactive_users %}
+                        😴
+                        {% endif %}
                         {% set badges = user_badges.get(post.author.id, []) %}
                         {% for badge in badges %}
                             <span title="{{ badge.description }}" style="font-size:1em; margin-left:5px;">{{ badge.emoji }}</span>
