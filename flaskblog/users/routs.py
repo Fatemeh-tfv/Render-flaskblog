@@ -4,6 +4,7 @@ from flaskblog import db, bcrypt
 from flaskblog.models import post, user
 from flaskblog.users.forms import RegistrationForm, LoginForm, UpdateAccountForm, RequestResetForm, ResetPasswordForm
 from flaskblog.users.utils import Save_picture, send_reset_email
+from flaskblog.bot.engagement_bot import get_engagement_summary
 
 users = Blueprint('users', __name__)
 
@@ -35,6 +36,15 @@ def login():
         User = user.query.filter_by(Email= form.Email.data).first()
         if User and bcrypt.check_password_hash(User.Password, form.Password.data):
             login_user(User, remember=form.Remember.data)
+
+            if User.is_admin:
+                try:
+                    return redirect(url_for('admin.dashboard'))
+                except Exception as e:
+                    print("REDIRECT TO ADMIN FAILED:", e)
+                    flash("Redirect failed", "danger")
+                    return redirect(url_for('main.home'))
+
             next_page = request.args.get('next')
             return redirect(next_page) if next_page else redirect(url_for('main.home'))
         else:
@@ -45,7 +55,6 @@ def login():
 def logout():
     logout_user()
     return redirect(url_for('main.home'))
-
 
 @users.route('/account', methods= ['GET', 'POST'])
 @login_required
@@ -64,7 +73,9 @@ def account():
         form.UserName.data = current_user.UserName
         form.Email.data = current_user.Email
     image_file = url_for('static', filename= 'P_pics/'+ current_user.image_file)
-    return render_template('account.html', title= 'Account', image_file= image_file, form= form)
+    summary = get_engagement_summary()
+    badges = summary.get("badged_users", {}).get(current_user.id, [])
+    return render_template('account.html', title= 'Account', image_file= image_file, form= form, badges=badges)
 
 @users.route('/user/<string:UserName>')
 def user_posts(UserName):

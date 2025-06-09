@@ -1,4 +1,32 @@
 {% extends "layout.html" %}
-    {% block content %}
-        <p>This is about us!</p>
-    {% endblock content %}
+{% block content %}
+<div class="container mt-5">
+    <div class="text-center mb-5">
+        <h1 class="display-4">About Us</h1>
+        <p class="lead">We're a passionate team building something meaningful for the world.</p>
+    </div>
+
+    <div class="row mb-5">
+        <div class="col-md-6">
+            <h2>Our Mission</h2>
+            <p>To create intuitive, impactful tools that empower communities and foster innovation. We believe in transparency, accessibility, and continuous growth.</p>
+        </div>
+        <div class="col-md-6">
+            <h2>Our Story</h2>
+            <p>What started as a weekend project quickly grew into a vibrant platform, driven by users and built with love. We're always learning, evolving, and listening.</p>
+        </div>
+    </div>
+
+    <h2 class="text-center mb-4">Meet the Team</h2>
+    <div class="row justify-content-center">
+    {% for member in team %}
+        <div class="team-member" style="text-align: center; max-width: 200px;">
+            <img src="{{ url_for('static', filename='team/' + member.image) }}" alt="{{ member.name }}" class="rounded-circle" width="150">
+            <h4>{{ member.name }}</h4>
+            <p><em>{{ member.role }}</em></p>
+            <p>{{ member.bio }}</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock content %}

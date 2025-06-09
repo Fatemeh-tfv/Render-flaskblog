@@ -7,6 +7,11 @@
                     <h2 class="account-heading">{{current_user.UserName}}</h2>
                     <p class="text-secondary"> {{current_user.Email}}</p>
                 </div>
+                <div>
+                {% for badge in badges %}
+                    <span title="{{ badge.description }}" style="font-size:1.5em;">{{ badge.emoji }}</span>
+                {% endfor %}
+                </div>
             </div>
                 <form method="post" action="" enctype="multipart/form-data">
                     {{ form.hidden_tag() }}

@@ -8,11 +8,68 @@
                         <img class="rounded-circle article-img" src="{{ url_for('static', filename='P_pics/' + post.author.image_file) }}"/>
                         <a class="mr-2" href="{{url_for('users.user_posts', UserName= post.author.UserName)}}">{{post.author.UserName}}</a>
                         <small class="text-muted">{{ post.date_posted.strftime('%Y-%m-%d') }}</small>
+                        {% set badges = user_badges.get(post.author.id, []) %}
+                        {% for badge in badges %}
+                            <span title="{{ badge.description }}" style="font-size:1em; margin-left:5px;">{{ badge.emoji }}</span>
+                        {% endfor %}
                     </div>
                     <h2><a class="article-title" href="{{ url_for('posts.Post', post_id= post.id) }}">{{ post.title }}</a></h2>
                     <p class="article-content">{{post.content}}</p>
                 </div>
+
+                <div class="d-flex align-items-center gap-3 mt-2">
+
+                <!-- Like Button -->
+                <form method="POST" action="{{ url_for('posts.like_post', post_id=post.id) }}" class="d-inline">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="btn btn-outline-primary btn-sm" title="Like">
+                            <i class="bi bi-hand-thumbs-up"></i>
+                        </button>
+                </form>
+
+                <!-- Dislike Button -->
+                <form method="POST" action="{{ url_for('posts.dislike_post', post_id=post.id) }}" class="d-inline">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="btn btn-outline-danger btn-sm" title="Dislike">
+                            <i class="bi bi-hand-thumbs-down"></i>
+                        </button>
+                </form>
+
+                <!-- Comment Button triggers modal -->
+                <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#commentModal{{ post.id }}">
+                    <i class="bi bi-chat-left-text"></i> Comment
+                </button>
+
+                <!-- Display like/comment counts -->
+                <small class="text-muted ms-3">
+                    👍 {{ post.likes.count()}} · 👎 {{ post.dislikes.count()}} · <a href="{{url_for('posts.Post', post_id= post.id)}}">{{ post.comments.count() }} comments</a>
+                </small>
+                </div>
             </article>
+            
+                    <!-- Comment Modal -->
+                    <div class="modal fade" id="commentModal{{ post.id }}" tabindex="-1" aria-labelledby="commentModalLabel{{ post.id }}" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                        <form method="POST" action="{{ url_for('posts.comment_post', post_id=post.id) }}">
+                            <div class="modal-header">
+                            <h5 class="modal-title" id="commentModalLabel{{ post.id }}">Add Comment</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <div class="mb-3">
+                                <textarea name="content" class="form-control" rows="3" placeholder="Write your comment here..." required></textarea>
+                            </div>
+                            </div>
+                            <div class="modal-footer">
+                            <button type="submit" class="btn btn-primary">Post Comment</button>
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            </div>
+                        </form>
+                        </div>
+                    </div>
+                    </div>
         {% endfor %}
         {% for page_num in posts.iter_pages(left_edge=1, right_edge= 1, left_current=1, right_current= 2) %}
             {% if page_num %}

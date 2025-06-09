@@ -16,8 +16,85 @@
                     </div>
                     <h2 class="article-title">{{ Post.title }}</h2>
                     <p class="article-content">{{Post.content}}</p>
+
+                <div class="mt-2 d-flex align-items-center gap-3"></div>
+                <div class="d-flex align-items-center gap-3 mt-2">
+
+                <!-- Like Button -->
+                <form method="POST" action="{{ url_for('posts.like_post', post_id=Post.id) }}" class="d-inline">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="btn btn-outline-primary btn-sm" title="Like">
+                            <i class="bi bi-hand-thumbs-up"></i>
+                        </button>
+                </form>
+
+                <!-- Dislike Button -->
+                <form method="POST" action="{{ url_for('posts.dislike_post', post_id=Post.id) }}" class="d-inline">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="btn btn-outline-danger btn-sm" title="Dislike">
+                            <i class="bi bi-hand-thumbs-down"></i>
+                        </button>
+                </form>
+
+
+                  <!-- Comment Button triggers modal -->
+                  <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#commentModal{{ Post.id }}">
+                    <i class="bi bi-chat-left-text"></i> Comment
+                  </button>
+
+                  <!-- Display like/comment counts -->
+                  <small class="text-muted ms-3">
+                           👍 {{ Post.likes.count() }} · 👎 {{ Post.dislikes.count()}} · {{ Post.comments.count() }} comments
+                  </small>
                 </div>
+                  <h5 class="mt-4 mb-3">Comments</h5>
+                  {% if Post.comments %}
+                    {% for comment in Post.comments %}
+                      <div class="card mb-3 shadow-sm">
+                        <div class="card-body">
+                          <div class="d-flex justify-content-between align-items-center mb-2">
+                            <strong>{{ comment.c_author.UserName }}</strong>
+                            <small class="text-muted">{{ comment.date_posted.strftime('%Y-%m-%d %H:%M') }}</small>
+                          </div>
+                          <p class="card-text">{{ comment.content }}</p>
+                          {% if comment.c_author == current_user or current_user.is_admin %}
+                            <form method="POST" action="{{ url_for('posts.delete_comment', comment_id=comment.id) }}" class="d-inline">
+                              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                              <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete this comment?')">
+                                <i class="bi bi-trash"></i> Delete
+                              </button>
+                            </form>
+                          {% endif %}
+                        </div>
+                      </div>
+                    {% endfor %}
+                  {% else %}
+                    <p class="text-muted">No comments yet. Be the first to comment!</p>
+                  {% endif %}
             </article>
+        <!-- Comment Modal -->
+        <div class="modal fade" id="commentModal{{ Post.id }}" tabindex="-1" aria-labelledby="commentModalLabel{{ Post.id }}" aria-hidden="true">
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <form method="POST" action="{{ url_for('posts.comment_post', post_id=Post.id) }}">
+                <div class="modal-header">
+                  <h5 class="modal-title" id="commentModalLabel{{ Post.id }}">Add Comment</h5>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                  <div class="mb-3">
+                    <textarea name="content" class="form-control" rows="3" placeholder="Write your comment here..." required></textarea>
+                  </div>
+                </div>
+                <div class="modal-footer">
+                  <button type="submit" class="btn btn-primary">Post Comment</button>
+                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
             <!-- Modal -->
             <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
                 <div class="modal-dialog modal-dialog-centered">

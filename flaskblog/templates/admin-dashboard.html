@@ -1,0 +1,108 @@
+{% extends "layout.html" %} 
+{% block content %}
+  <h1 class="mb-4">📊 Admin Dashboard</h1>
+
+  <!-- Sorting options -->
+  <div class="mb-3">
+    <form method="get" class="form-inline">
+      <label class="mr-2">Sort by:</label>
+      <select name="sort" class="form-control mr-2" onchange="this.form.submit()">
+        <option value="username" {% if sort_by == 'username' %}selected{% endif %}>Username</option>
+        <option value="post_count" {% if sort_by == 'post_count' %}selected{% endif %}>Number of Posts</option>
+      </select>
+    </form>
+  </div>
+
+  <!-- 🤖 Engagement Bot Suggestions -->
+  {% if summary %}
+    <div class="card mt-4 p-3 shadow-sm bg-light border rounded mb-4">
+      <h4 class="mb-3">🤖 Engagement Bot Suggestions</h4>
+      <ul class="mb-0">
+        {% if summary.inactive_users %}
+          {% for user in summary.inactive_users %}
+            <li>😴 <strong>{{ user.UserName }}</strong> hasn’t logged in recently ({{ user.last_login.strftime('%Y-%m-%d') }})</li>
+          {% endfor %}
+        {% else %}
+          <li>No inactive users 🎯</li>
+        {% endif %}
+
+        {% if summary.top_users %}
+          {% for username, count in summary.top_users %}
+            <li>🔥 Top user: <strong>{{ username }}</strong> with <strong>{{ count }}</strong> posts this week</li>
+          {% endfor %}
+        {% else %}
+          <li>No top contributors yet. Encourage some posts!</li>
+        {% endif %}
+      </ul>
+    </div>
+  {% endif %}
+
+  <!-- User Cards -->
+  {% for u in users %}
+    {% set user = u.user %}
+    {% set post_count = u.post_count %}
+    {% set badges = u.badges if u.badges else [] %}
+
+    <div class="card mb-4 shadow-sm border rounded p-3">
+      <div class="d-flex align-items-center">
+        <!-- Emoji avatar -->
+        <div class="display-4 mr-3">
+          {% if post_count > 10 %}
+            🦸‍♂️
+          {% elif post_count > 0 %}
+            👤
+          {% else %}
+            💤
+          {% endif %}
+        </div>
+
+        <div class="flex-grow-1">
+          <h5 class="mb-1">
+            <a href="{{ url_for('users.user_posts', UserName=user.UserName) }}">{{ user.UserName }}</a>
+            {% if not user.is_active %}
+              <span class="badge badge-danger ml-2">Disabled</span>
+            {% endif %}
+          </h5>
+          <p class="mb-1 text-muted">📧 {{ user.Email }}</p>
+          <small class="text-muted">📝 Posts: {{ post_count }}</small>
+
+          <!-- Badge display -->
+          {% if badges %}
+            <div class="mt-2">
+              {% for badge in badges %}
+                <span class="badge badge-pill badge-info mr-1">{{ badge }}</span>
+              {% endfor %}
+            </div>
+          {% endif %}
+        </div>
+
+        <!-- Enable/Disable Buttons -->
+        <div>
+          <form action="{{ url_for('admin.toggle_user_status', user_id=user.id) }}" method="post">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            {% if user.is_active %}
+              <button class="btn btn-sm btn-warning" type="submit">🔒 Disable</button>
+            {% else %}
+              <button class="btn btn-sm btn-success" type="submit">🔓 Enable</button>
+            {% endif %}
+          </form>
+        </div>
+      </div>
+    </div>
+  {% endfor %}
+
+  <!-- Pagination -->
+  <nav>
+    <ul class="pagination">
+      {% for page_num in pagination.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2) %}
+        {% if page_num %}
+          <li class="page-item {% if pagination.page == page_num %}active{% endif %}">
+            <a class="page-link" href="{{ url_for('admin.dashboard', page=page_num, sort=sort_by) }}">{{ page_num }}</a>
+          </li>
+        {% else %}
+          <li class="page-item disabled"><span class="page-link">…</span></li>
+        {% endif %}
+      {% endfor %}
+    </ul>
+  </nav>
+{% endblock %}

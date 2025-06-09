@@ -12,18 +12,96 @@
                     </div>
                     <h2><a class="article-title" href="{{ url_for('posts.Post', post_id= post.id) }}">{{ post.title }}</a></h2>
                     <p class="article-content">{{post.content}}</p>
+                    {% if current_user.is_admin %}
+                        <form method="post" action="{{ url_for('posts.delete_post', post_id=post.id) }}" style="display:inline;">
+                           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Delete this post?')">Delete Post</button>
+                        </form>
+                    {% endif %}
+                </div>
+                  <div class="mt-2 d-flex align-items-center gap-3">
+
+                <div class="d-flex align-items-center gap-3 mt-2">
+                <!-- Like Button -->
+                <form method="POST" action="{{ url_for('posts.like_post', post_id=post.id) }}" class="d-inline">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="btn btn-outline-primary btn-sm" title="Like">
+                            <i class="bi bi-hand-thumbs-up"></i>
+                        </button>
+                </form>
+
+                <!-- Dislike Button -->
+                <form method="POST" action="{{ url_for('posts.dislike_post', post_id=post.id) }}" class="d-inline">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="btn btn-outline-danger btn-sm" title="Dislike">
+                            <i class="bi bi-hand-thumbs-down"></i>
+                        </button>
+                </form>
+
+                  <!-- Comment Button triggers modal -->
+                  <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#commentModal{{ post.id }}">
+                    <i class="bi bi-chat-left-text"></i> Comment
+                  </button>
+
+                  <!-- Display like/comment counts -->
+                  <small class="text-muted ms-3">
+                           👍 {{ post.likes.count() }} · 👎 {{ post.dislikes.count()}} · {{ post.comments.count() }} comments
+                  </small>
                 </div>
             </article>
+                    <!-- Comment Modal -->
+        <div class="modal fade" id="commentModal{{ post.id }}" tabindex="-1" aria-labelledby="commentModalLabel{{ post.id }}" aria-hidden="true">
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <form method="POST" action="{{ url_for('posts.comment_post', post_id=post.id) }}">
+                <div class="modal-header">
+                  <h5 class="modal-title" id="commentModalLabel{{ post.id }}">Add Comment</h5>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                  <div class="mb-3">
+                    <textarea name="content" class="form-control" rows="3" placeholder="Write your comment here..." required></textarea>
+                  </div>
+                </div>
+                <div class="modal-footer">
+                  <button type="submit" class="btn btn-primary">Post Comment</button>
+                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
         {% endfor %}
         {% for page_num in posts.iter_pages(left_edge=1, right_edge= 1, left_current=1, right_current= 2) %}
             {% if page_num %}
                 {% if posts.page == page_num %}
                     <a class="btn btn-info mb-4" href="{{url_for('users.user_posts',UserName=User.UserName, page=page_num)}}" style="color: white;">{{ page_num }}</a>
                 {% else %}
-                    <a class="btn btn-outline-info mb-4" href="{{url_for('main.home', page=page_num)}}">{{ page_num }}</a>
+                    <a class="btn btn-outline-info mb-4" href="{{url_for('users.user_posts',UserName=User.UserName , page=page_num)}}">{{ page_num }}</a>
                 {% endif %}
             {% else %}
                 ...
             {% endif %}
         {% endfor %}
+        
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <div aria-live="polite" aria-atomic="true" class="position-relative">
+      <div class="toast-container position-fixed bottom-0 end-0 p-3">
+        {% for category, message in messages %}
+          <div class="toast align-items-center text-bg-{{ 'danger' if category == 'error' else category }} border-0 show" role="alert">
+            <div class="d-flex">
+              <div class="toast-body">
+                {{ message | safe }}
+              </div>
+              <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  {% endif %}
+{% endwith %}
+
 {% endblock content %}
