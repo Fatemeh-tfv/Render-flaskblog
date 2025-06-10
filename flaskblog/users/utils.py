@@ -41,3 +41,12 @@ if you did not make thid request then simply ignore this email and no changes wi
         mail.send(msg)
     except:
         print(msg)
+        
+def active_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not current_user.is_active:
+            flash("Your account is deactivated.", "warning")
+            return redirect(url_for("main.home"))  # or a dedicated "access denied" page
+        return f(*args, **kwargs)
+    return decorated_function

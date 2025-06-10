@@ -5,6 +5,7 @@ from flaskblog.models import post, user
 from flaskblog.users.forms import RegistrationForm, LoginForm, UpdateAccountForm, RequestResetForm, ResetPasswordForm
 from flaskblog.users.utils import Save_picture, send_reset_email
 from flaskblog.bot.engagement_bot import get_engagement_summary
+from datetime import datetime
 
 users = Blueprint('users', __name__)
 
@@ -36,9 +37,13 @@ def login():
         User = user.query.filter_by(Email= form.Email.data).first()
         if User and bcrypt.check_password_hash(User.Password, form.Password.data):
             if not User.is_active:
-                User.is_active = True
-                db.session.commit()
+                flash("Your account is currently disabled. Please contact an admin.", "danger")
+                return redirect(url_for("users.login"))
+            
             login_user(User, remember=form.Remember.data)
+
+            User.last_login = datetime.utcnow()
+            db.session.commit()
 
             if User.is_admin:
                 try:

@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import datetime
 from itsdangerous.url_safe import URLSafeSerializer as Serializer
 from flask import current_app
 from flaskblog import db, login_manager
@@ -64,7 +64,7 @@ class Dislike(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     post_id = db.Column(db.Integer, db.ForeignKey('post.id'), nullable=False)
 
-    __table_args__ = (db.UniqueConstraint('user_id', 'post_id', name='unique_like'),)
+    __table_args__ = (db.UniqueConstraint('user_id', 'post_id', name='unique_Dislike'),)
 
 class Comment(db.Model):
     id = db.Column(db.Integer, primary_key=True)

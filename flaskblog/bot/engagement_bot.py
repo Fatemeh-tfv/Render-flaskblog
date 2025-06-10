@@ -10,8 +10,15 @@ def get_engagement_summary():
     inactive_since = now - timedelta(days=7)
     inactive_users = user.query.filter(
         user.last_login != None,
-        user.last_login < inactive_since
+        user.last_login < inactive_since,
+        user.is_active == True  # Only disable users who are still active
     ).all()
+
+    # 🔴 Automatically disable them in the database
+    for u in inactive_users:
+        u.is_active = False
+
+    db.session.commit()
 
     # Top posters in last 7 days
     one_week_ago = now - timedelta(days=7)
@@ -21,7 +28,7 @@ def get_engagement_summary():
         .filter(post.date_posted >= one_week_ago)
         .group_by(user.id)
         .order_by(func.count(post.id).desc())
-        .limit(3)
+        .limit(3) #3 user at most
         .all()
     )
 
